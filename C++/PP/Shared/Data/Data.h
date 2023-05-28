@@ -23,7 +23,7 @@ class Data{
 
         Data operator=(const Data&);
         friend std::ostream& operator<<(std::ostream& stream, const Data&);
-        friend std::istream& operator>>(std::istream& stream, Data*);
+        friend int operator>>(std::istream& stream, Data*);
         
     private:
         void init(const int, const int, const int);

@@ -17,7 +17,7 @@ class Produs{
         double pret;
         Categorie *categorie;
     public:
-        Produs(const std::string, const std::string, const int, const double, const Categorie&);
+        Produs(const std::string = "", const std::string = "", const int = 0, const double = 0, const Categorie& = Categorie(""));
         Produs(const Produs&);
         ~Produs();
 
@@ -27,16 +27,17 @@ class Produs{
         double getPret() const{return this->pret;};
         Categorie* getCategorie() const{return this -> categorie;};
 
-        void setCodDeBare(std::string cod_de_bare){this -> cod_de_bare = cod_de_bare;};
+        void setCodDeBare(const std::string cod_de_bare){this -> cod_de_bare = cod_de_bare;};
         void setDenumire(const std::string denumire){this -> denumire = denumire;};
         void setCantitate(const int cantitate){this -> cantitate = cantitate;};
         void setPret(const double pret){this -> pret = pret;};
-        void setCategorie(const Categorie &categorie){if(this -> categorie){delete this -> categorie;}this -> categorie = new Categorie(categorie);};
+        void setCategorie(const Categorie &categorie){if(this -> categorie != NULL){delete this -> categorie;}this -> categorie = new Categorie(categorie);};
 
         Produs operator=(const Produs&);
         friend std::ostream& operator<<(std::ostream &, const Produs&);
-        friend std::istream& operator>>(std::istream &, Produs*);
+        friend std::istream& operator>>(std::istream &, Produs&);
 
+        friend void adaugare_produs(const std::string, const std::string, const int, const double, const std::string);
         friend void modificare_produs(const std::string, const int);
         friend void modificare_produs(const std::string, const std::string, const std::string);
         friend void stergere_produs(const std::string); //implementare in App  

@@ -5,6 +5,9 @@
 #include <string.h>
 #endif
 
+#include <fstream>
+#include <cstdlib>
+
 #ifndef PRODUSH
 #define PRODUSH
 #include "Produs.h"
@@ -15,13 +18,14 @@ void Produs::init(const std::string cod_de_bare, const std::string denumire, con
     this -> denumire = denumire;
     this -> cantitate = cantitate;
     this -> pret = pret;
-    if(this -> categorie){
+    if(this -> categorie != NULL){
         delete this -> categorie;
     }
     this -> categorie = new Categorie(categorie);
 }
 
 Produs::Produs(const std::string cod_de_bare, const std::string denumire, const int cantitate, const double pret, const Categorie& categorie){
+    this -> categorie = NULL;
     this -> init(cod_de_bare, denumire, cantitate, pret, categorie);
 }
 
@@ -43,7 +47,16 @@ std::ostream& operator<<(std::ostream& stream, const Produs& p){
     return stream;
 }
 
-std::ifstream& operator>>(std::ifstream& stream, Produs *p){
-    
-    return stream; //tbc
+int operator>>(std::ifstream& stream, Produs &p){
+    char *str = new char[50];
+    if(stream.getline(str, 50)){
+        p.setCodDeBare(strtok(str, " "));
+        p.setDenumire(strtok(NULL, " "));
+        p.setCantitate((int)std::strtol(strtok(NULL, " "), NULL, 10));
+        p.setPret(std::strtod(strtok(NULL, " "), NULL));
+        p.setCategorie(Categorie(strtok(NULL, " ")));
+        return 1;
+    }else{
+        return 0;
+    }
 }
