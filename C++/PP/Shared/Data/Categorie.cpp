@@ -13,6 +13,11 @@
 #include "Produs.h"
 #endif
 
+Categorie::Categorie(){
+    this -> produse = new Produs*[100];
+    this -> nrProduse = 0;
+}
+
 void Categorie::init(const std::string denumire, const int nrProduse, const Produs** produse){
     this->denumire = denumire;
     this->nrProduse = nrProduse;
@@ -31,15 +36,13 @@ Categorie::Categorie(const Categorie& c){
     this->nrProduse = c.nrProduse;
     this->produse = new Produs*[100];
     for(int i = 0; i < this->nrProduse; i++){
-        this->produse[i] = new Produs(*(c.produse[i]));
+        this->produse[i] = new Produs(*c.produse[i]);
     }
 }
 
 Categorie::~Categorie(){
-    if(this -> produse){
-        for(int i = 0; i < this->nrProduse; i++){
-            delete this->produse[i];
-        }
+    if(this -> produse && this -> nrProduse){
+        delete [] this->produse;
     }
 }
 
@@ -60,30 +63,51 @@ void Categorie::setProdus(const Produs &p, const int i){
     this->produse[i] = new Produs(p);
 }
 
-std::ostream& operator<<(std::ostream& stream, const Categorie& c){
-    stream << c;
+template <typename T> T& operator<<(T& stream, const Categorie& c){
+    stream << c.denumire.c_str() << '\n' << c.nrProduse;
+    for(int i = 0; i < c.nrProduse; i++){
+        stream << '\n' << *c.produse[i];
+    }
     return stream;
 }
 
-int operator>>(std::ifstream& stream, Categorie& c){
+template <typename T> int operator>>(T& stream, Categorie& c){
     char *str0 = new char[50];
     if(stream.getline(str0, 50)){
-        c.setDenumire(str0);
+        c.denumire = str0;
         stream.getline(str0, 50);
-        c.setNrProduse((int)std::strtol(str0, NULL, 10));
-        for(int i = 0; i < c.getNrProduse(); i++){
+        int nrProduse = (int)std::strtol(str0, NULL, 10);
+        for(int i = 0; i < nrProduse; i++){
             char *str = new char[50];
             stream.getline(str, 50);
             Produs p;
-            p.setCodDeBare(strtok(str, " "));
-            p.setDenumire(strtok(NULL, " "));
-            p.setCantitate((int)std::strtol(strtok(NULL, " "), NULL, 10));
-            p.setPret(std::strtod(strtok(NULL, " "), NULL));
+            p.setCodDeBare(strtok(str, ";"));
+            p.setDenumire(strtok(NULL, ";"));
+            p.setCantitate((int)std::strtol(strtok(NULL, ";"), NULL, 10));
+            p.setPret(std::strtod(strtok(NULL, ";"), NULL));
             p.setCategorie(c.getDenumire());
-            c.setProdus(p, i);
+            c.addProdus(new Produs(p));
         }
         return 1;
     }else{
         return 0;
+    }
+}
+
+void Categorie::addProdus(Produs *p){
+    this -> produse[this -> nrProduse] = new Produs(*p);
+    this -> nrProduse += 1;
+}
+
+void Categorie::delProdus(const std::string cod_de_bare){
+    for(int i = 0; i < this -> nrProduse; i++){
+        if(this -> produse[i] -> getCodDeBare() == cod_de_bare){
+            this -> nrProduse -= 1;
+            for(int j = i; j < this -> nrProduse; j++){
+                this -> produse[j] = new Produs(*this -> produse[j + 1]);
+            }
+            delete this -> produse[this -> nrProduse];
+            break;
+        }
     }
 }

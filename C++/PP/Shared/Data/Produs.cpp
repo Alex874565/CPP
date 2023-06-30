@@ -19,9 +19,6 @@ void Produs::init(const std::string cod_de_bare, const std::string denumire, con
     this -> denumire = denumire;
     this -> setCantitate(cantitate);
     this -> pret = pret;
-    if(this -> categorie != NULL){
-        delete this -> categorie;
-    }
     this -> categorie = new Categorie(categorie);
 }
 
@@ -43,21 +40,26 @@ Produs Produs::operator=(const Produs& p){
     return *this;
 }
 
-std::ostream& operator<<(std::ostream& stream, const Produs& p){
-    stream << "{ "<<  p.getDenumire() << ", " << p.getPret() << "lei" << ", cantitate in stoc: " << p.getCantitate() << " }";
+/*std::ostream& operator<<(std::ostream& stream, const Produs& p){
+    stream << "{ "<<  p.getDenumire() << ", " << p.getPret() << " lei" << ", cantitate in stoc: " << p.getCantitate() << " }";
     return stream;
-}
+}*/
 
-std::ifstream& operator>>(std::ifstream& stream, Produs &p){
+template <typename T> T& operator>>(T& stream, Produs& p){
     //asta o implementase-si tu Carpi doar ca ai uitat sa incluzie
     //relatia de friend si in prototipul clasei :))
     char *str = new char[100];
-    if(stream.getline(str, 100)){
-        p.setCodDeBare(strtok(str, ";"));
-        p.setDenumire(strtok(NULL, ";"));
-        p.setCantitate((int)std::strtol(strtok(NULL, ";"), NULL, 10));
-        p.setPret(std::strtod(strtok(NULL, ";"), NULL));
-        p.setCategorie(Categorie(strtok(NULL, ";")));
+    if(stream.getline(str, 100) && strcmp(str, "") != 0){
+        char *token = strtok(str, ";");
+        p.setCodDeBare(token);
+        token = strtok(NULL, ";");
+        p.denumire = token;
+        token = strtok(NULL, ";");
+        p.cantitate = (int)std::strtol(token, NULL, 10);
+        token = strtok(NULL, ";");
+        p.pret = std::strtod(token, NULL);
+        token = strtok(NULL, ";");
+        p.categorie = new Categorie(token);
         return stream;
     }else{
 
@@ -65,7 +67,34 @@ std::ifstream& operator>>(std::ifstream& stream, Produs &p){
     }
 }
 
-std::ofstream& operator<<(std::ofstream& stream, const Produs &p){
+std::string& operator>>(std::string& stream, Produs& p){
+    //asta o implementase-si tu Carpi doar ca ai uitat sa incluzie
+    //relatia de friend si in prototipul clasei :))
+    if(stream != ""){
+        char *token = strdup(stream.c_str());
+        token = strtok(token, ";");
+        p.cod_de_bare = token;
+        token = strtok(NULL, ";");
+        p.denumire = token;
+        token = strtok(NULL, ";");
+        p.cantitate = (int)std::strtol(token, NULL, 10);
+        token = strtok(NULL, ";");
+        p.pret = std::strtod(token, NULL);
+        token = strtok(NULL, ";");
+        p.categorie = new Categorie(token);
+        return stream;
+    }else{
+
+        return stream;
+    }
+}
+
+/*std::ofstream& operator<<(std::ofstream& stream, const Produs &p){
     stream << p.getCodDeBare() <<";" <<p.getDenumire() <<";"<<p.getCantitate()<<";"<<p.getPret()<<";"<<p.getCategorie()->getDenumire();
+    return stream;
+}*/
+
+template <typename T> T& operator<<(T& stream, const Produs& p){
+    stream << p.getCodDeBare().c_str() << ";" << p.denumire << ";" << p.cantitate << ";" << p.pret << ";" << p.categorie->getDenumire();
     return stream;
 }

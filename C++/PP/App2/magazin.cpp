@@ -105,14 +105,15 @@ void vizualizare_stoc(){
     fin.open(stocf);
     std::string line;
     char *clone, *token;
+    Produs p;
     std::getline(fin, line);
     std::cout << "Numar produse distincte: " << line << '\n';
     if(line != "0"){
     std::cout << "Produse:\n";
         int index = 1;
-        while(std::getline(fin, line)){
-            std::cout << "Produs " << index << ":";
-            afisare_produs(line);
+        while(fin >> p){
+            std::cout << "Produs " << index << ":\n";
+            std::cout << p << '\n';
             index++;
         }
     }
@@ -143,72 +144,55 @@ void vizualizare_categorie(std::string denumire){
     fin.close();
 }
 
-void delProdCateg(std::string filename, const std::string cod_de_bare, const std::string category){
+void delProdCateg(std::string filename, const std::string cod_de_bare, const std::string categorie){
     std::ifstream fin;
     std::ofstream fout;
-    std::string line;
-    std::vector<std::string> lines;
-    char *clone, *token;
-    std::string code;
+    std::vector<Categorie> lines;
+    Categorie c;
     fin.open(filename);
-    while(std::getline(fin, line)){
-        if(line.find(";") != std::string::npos){
-            clone = strdup(line.c_str());
-            token = strtok(clone, ";");
-            code = strdup(token);
-            if(code != cod_de_bare){
-                lines.push_back(line);
-            }
-        }else{
-            if(line == category){
-                lines.push_back(line);
-                std::getline(fin, line);
-                int nr_prod = std::strtol(line.c_str(), NULL, 10) - 1;
-                if(!nr_prod){
-                    lines.erase(lines.end());
-                }else{
-                    lines.push_back(std::to_string(nr_prod));
-                }
-            }else{
-                lines.push_back(line);
-            }
+    while(fin >> c){
+        if(c.getDenumire() == categorie){
+            c.delProdus(cod_de_bare);
         }
+        if(c.getNrProduse() != 0){
+            lines.push_back(c);
+        }
+        c = Categorie();
     }
     fout.open(filename);
-    for(std::vector<std::string>::iterator a = lines.begin(); a != lines.end(); a++){
-        fout << *a << '\n';
+    for(int i = 0; i < lines.size(); i++){
+        fout << lines[i] << '\n';
     }
     fout.close();
 }
 
 void addProdCateg(std::string filename, const std::string cod_de_bare, const std::string denumire, const int cantitate, const double pret, const std::string categorie){
     std::ifstream fin;
-    fin.open(filename.c_str());
-    std::vector<std::string>lines;
+    std::vector<Categorie>lines;
     std::string line;
-    while(std::getline(fin, line) && line != categorie){
-        lines.push_back(line);
+    Categorie c;
+    fin.open(filename.c_str());
+    while(fin >> c && c.getDenumire() != categorie){
+        lines.push_back(Categorie(c));
+        c = Categorie();
     }
-    if(line != categorie){
-        lines.push_back(categorie);
-        lines.push_back("1");
+    if(c.getDenumire() != categorie){
+        c = Categorie(categorie);
+        c.addProdus(new Produs(cod_de_bare, denumire, cantitate, pret, categorie));
+        lines.push_back(Categorie(c));
     }else{
-        lines.push_back(line);
-        std::getline(fin, line);
-        lines.push_back(std::to_string(std::strtol(line.c_str(), NULL, 10) + 1));
+        c.addProdus(new Produs(cod_de_bare, denumire, cantitate, pret, categorie));
+        lines.push_back(c);
     }
-    std::stringstream ss;
-    ss << cod_de_bare << ";" << denumire << ";" << cantitate << ";" << pret;
-    line = ss.str();
-    lines.push_back(line);
-    while(std::getline(fin, line)){
-        lines.push_back(line);
+    while(fin >> c){
+        lines.push_back(c);
+        c = Categorie();
     }
     fin.close();
     std::ofstream fout;
     fout.open(filename.c_str());
-    for(std::vector<std::string>::iterator a = lines.begin(); a != lines.end(); a++){
-        fout << *a << '\n';
+    for(int i = 0; i < lines.size(); i++){
+        fout << lines[i] << '\n';
     }
     fout.close();
 } //pentru a adauga un produs unei categorii
@@ -219,12 +203,13 @@ void adaugare_produs(const std::string cod_de_bare, const std::string denumire, 
     std::ifstream fin;
     fin.open(stocf);
     std::string line;
-    std::vector<std::string> lines;
+    std::vector<Produs> lines;
     std::getline(fin, line);
-    lines.push_back(line);
-    while(std::getline(fin, line)){
-        lines.push_back(line);
-        if(strcmp(strtok(strdup(line.c_str()), ";"), cod_de_bare.c_str()) == 0){
+    int nr_prod = strtol(line.c_str(), NULL, 10);
+    Produs p;
+    while(fin >> p){
+        lines.push_back(p);
+        if(p.getCodDeBare() == cod_de_bare){
             exista = 1;
             break;
         }
@@ -234,13 +219,13 @@ void adaugare_produs(const std::string cod_de_bare, const std::string denumire, 
     if(exista){
         std::cout << "Codul de bare a fost deja folosit.\n";
     }else{
-        lines[0] = std::to_string(std::strtol(lines[0].c_str(), NULL, 10) + 1);
         std::ofstream fout;
         fout.open(stocf);
+        fout << std::to_string(nr_prod + 1).c_str() << '\n';
         for(int i = 0; i < lines.size(); i++){
             fout << lines[i] << "\n";
         }
-        fout << cod_de_bare << ";" << denumire << ";" << cantitate << ";" << pret << ";" << categorie << '\n';
+        fout << Produs(cod_de_bare, denumire, cantitate, pret, Categorie(categorie));
         fout.close();
         //adaugare in categorii.txt
         addProdCateg(categf, cod_de_bare, denumire, cantitate, pret, categorie);
@@ -250,72 +235,79 @@ void adaugare_produs(const std::string cod_de_bare, const std::string denumire, 
 void modificare_produs(const std::string cod_de_bare, const std::string camp, const std::string val_noua, const bool superficial = false){
     std::ifstream fin;
     std::ofstream fout;
-    std::vector<std::string> lines;
+    std::vector<Produs> lines;
     std::string line;
     char* clone;
     fin.open(stocf);
-    std::map<std::string, std::string> campuri;
-    std::stringstream ss;
+    std::string categorie;
+    Produs p;
     int exista = 0;
     //modificare in stoc
     std::getline(fin, line);
-    lines.push_back(line);
-    while(std::getline(fin, line)){
-        clone = strdup(line.c_str());
-        campuri["cod_de_bare"] = strtok(clone, ";");
-        if(campuri["cod_de_bare"] != cod_de_bare){
-            lines.push_back(line);
+    int nr_prod = strtol(line.c_str(), NULL, 10);
+    while(fin >> p){
+        if(p.getCodDeBare() != cod_de_bare){
+            lines.push_back(p);
         }else{
             exista = 1;
-            campuri["denumire"] = strtok(NULL, ";");
-            campuri["cantitate"] = strtok(NULL, ";");
-            campuri["pret"] = strtok(NULL, ";");
-            campuri["categorie"] = strtok(NULL, ";");
+            categorie = p.getCategorie()->getDenumire();
             if(camp == "categorie" && !superficial){
-                delProdCateg(categf, cod_de_bare, campuri["categorie"]);
-                addProdCateg(categf, cod_de_bare, campuri["denumire"], std::strtol(campuri["cantitate"].c_str(), NULL, 10), std::strtod(campuri["pret"].c_str(), NULL), val_noua);
+                delProdCateg(categf, cod_de_bare, categorie);
+                p.setCategorie(Categorie(val_noua));
+                addProdCateg(categf, cod_de_bare, p.getDenumire(), p.getCantitate(), p.getPret(), p.getCategorie() -> getDenumire());
             }
-            campuri[camp] = val_noua;
-            ss << cod_de_bare << ";"  << campuri["denumire"] << ";" << campuri["cantitate"] << ";" << campuri["pret"] << ";" << campuri["categorie"];
-            lines.push_back(ss.str());
+            if(camp == "denumire"){
+                p.setDenumire(val_noua);
+            }
+            if(camp == "cantitate"){
+                p.setCantitate(strtol(val_noua.c_str(), NULL, 10));
+            }
+            if(camp == "pret"){
+                p.setPret(strtol(val_noua.c_str(), NULL, 10));
+            }
+            lines.push_back(p);
         }
     }
     fin.close();
     fout.open(stocf);
+    fout << std::to_string(nr_prod).c_str() << '\n';
     for(int i = 0; i < lines.size(); i++){
         fout << lines[i] << '\n';
     }
     fout.close();
     //modificare in categorii
-    lines.clear();
-    ss.str(std::string());
     if(!exista){
         std::cout << "Codul de bare este incorect.\n";
     }
     if(camp != "categorie" && exista){
         fin.open(categf);
-        while(std::getline(fin, line)){
-            if(line.find(';') != std::string::npos){
-                clone = strdup(line.c_str());
-                campuri["cod_de_bare"] = strtok(clone, ";");
-                if(campuri["cod_de_bare"] != cod_de_bare){
-                    lines.push_back(line);
-                }else{
-                    campuri["denumire"] = strtok(NULL, ";");
-                    campuri["cantitate"] = strtok(NULL, ";");
-                    campuri["pret"] = strtok(NULL, ";");
-                    campuri[camp] = val_noua;
-                    ss << cod_de_bare << ";"  << campuri["denumire"] << ";" << campuri["cantitate"] << ";" << campuri["pret"];
-                    lines.push_back(ss.str());
+        std::vector<Categorie> categs;
+        Categorie c;
+        while(fin >> c){
+            if(c.getDenumire() == categorie){
+                for(int i = 0; i < c.getNrProduse(); i++){
+                    p = *c.getProdus(i);
+                    if(p.getCodDeBare() == cod_de_bare){
+                        if(camp == "denumire"){
+                            p.setDenumire(val_noua);
+                        }
+                        if(camp == "cantitate"){
+                            p.setCantitate(strtol(val_noua.c_str(), NULL, 10));
+                        }
+                        if(camp == "pret"){
+                            p.setPret(strtol(val_noua.c_str(), NULL, 10));
+                        }
+                    }
+                    c.setProdus(p, i);
                 }
-            }else{
-                lines.push_back(line);
             }
+            categs.push_back(c);
+            c = Categorie();
         }
         fin.close();
         fout.open(categf);
-        for(int i = 0; i < lines.size(); i++){
-            fout << lines[i] << '\n';
+        for(int i = 0; i < categs.size(); i++){
+            fout << categs[i] << '\n';
         }
         fout.close();
     }
@@ -324,66 +316,62 @@ void modificare_produs(const std::string cod_de_bare, const std::string camp, co
 void stergere_produs(const std::string cod_de_bare, const bool superficial = false){
     std::ifstream fin;
     std::ofstream fout;
-    std::vector<std::string> lines;
-    std::string line, code, category;
-    char *token, *clone;
+    std::vector<Produs> lines;
+    std::string line, code, categorie;
     bool exista = 0;
     //stergere produs din stoc.txt
     fin.open(stocf);
     std::getline(fin, line);
-    lines.push_back(line);
-    while(std::getline(fin, line)){
-        clone = strdup(line.c_str());
-        token = strtok(clone, ";");
-        code = strdup(token);
-        if(code != cod_de_bare){
-            lines.push_back(line);
+    int nr_prod = std::strtol(line.c_str(), NULL, 10);
+    Produs p;
+    while(fin >> p){
+        if(p.getCodDeBare() != cod_de_bare){
+            lines.push_back(p);
         }else{
             exista = 1;
-            token = strtok(NULL, ";");
-            token = strtok(NULL, ";");
-            token = strtok(NULL, ";");
-            token = strtok(NULL, ";");
-            category = strdup(token);
+            categorie = p.getCategorie()->getDenumire();
         }
     }
     fin.close();
     if(exista){
-        lines[0] = std::to_string(std::strtol(lines[0].c_str(), NULL, 10) - 1);
+        nr_prod -= 1;
     }
     fout.open(stocf);
-    for(std::vector<std::string>::iterator a = lines.begin(); a != lines.end(); a++){
-        fout << *a << '\n';
+    fout << nr_prod << '\n';
+    for(int i = 0; i < lines.size(); i++){
+        fout << lines[i] << '\n';
     }
     fout.close();
     if(exista){
         //stergere produs din cos_cumparaturi.txt
-        lines.clear();
+        std::vector<std::string>clines;
+        char *clone, *token;
         exista = 0;
         fin.open(coscf);
         std::getline(fin, line);
-        lines.push_back(line);
+        clines.push_back(line);
         while(std::getline(fin, line)){
-            exista = 1;
             clone = strdup(line.c_str());
             token = strtok(clone, ";");
             code = strdup(token);
             if(code != cod_de_bare){
-                lines.push_back(line);
+                clines.push_back(line);
+            }else{
+                exista = 1;
             }
         }
         fin.close();
         fout.open(coscf);
         if(exista){
-            lines[0] = std::to_string(std::strtol(lines[0].c_str(), NULL, 10)-1);
+            clines[0] = std::to_string(std::strtol(clines[0].c_str(), NULL, 10)-1);
         }
-        for(std::vector<std::string>::iterator a = lines.begin(); a != lines.end(); a++){
-            fout << *a << '\n';
+        for(int i = 0; i < clines.size(); i++){
+            fout << clines[i].c_str() << '\n';
         }
         fout.close();
         //stergere produs din categorii.txt
         if(!superficial){
-            delProdCateg(categf, cod_de_bare, category);
+            delProdCateg(categf, cod_de_bare, categorie);
         }
     }else{
         std::cout << "Produsul nu exista.\n";
@@ -393,9 +381,7 @@ void stergere_produs(const std::string cod_de_bare, const bool superficial = fal
 void adaugare_categorie(int argc, char** argv){    
     std::ifstream fin;
     fin.open(categf);
-    std::vector<std::string> lines;
     std::string line;
-    std::stringstream ss;
     bool exista = 0;
     while(std::getline(fin, line)){
         if(line == argv[2]){
@@ -409,10 +395,11 @@ void adaugare_categorie(int argc, char** argv){
     }else{
         for(int i = 1; i <= std::strtol(argv[3], NULL, 10); i++){
             std::ifstream fin;
+            Produs p;
             fin.open(stocf);
             std::getline(fin, line);
-            while(std::getline(fin, line)){
-                if(strcmp(strtok(strdup(line.c_str()), ";"), argv[4*i]) == 0){
+            while(fin >> p){
+                if(p.getCodDeBare() == argv[4*i]){
                     std::cout << "Codul de bare: " << argv[4*i] << " a fost deja folosit.\n";
                     fin.close();
                     return ;
@@ -429,71 +416,45 @@ void adaugare_categorie(int argc, char** argv){
 void modificare_categorie(const std::string denumire, const std::string denumire_noua){
     std::ifstream fin;
     std::ofstream fout;
-    std::vector<std::string> lines;
-    std::string line;
-    bool exista = 0;
+    Categorie c;
+    bool exista = 0, exista2 = 0;
     fin.open(categf);
-    while(std::getline(fin, line)){
-        if(denumire == line){
+    while(fin >> c){
+        if(c.getDenumire() == denumire){
             exista = 1;
-            lines.push_back(denumire_noua);
-            std::getline(fin, line);
-            lines.push_back(line);
-            int prods = std::strtol(line.c_str(), NULL, 10);
-            for(int i = 0; i < prods; i++){
-                std::getline(fin, line);
-                lines.push_back(line);
-                char *token = strdup(line.c_str());
-                token = strtok(token, ";");
-                modificare_produs(token, "categorie", denumire_noua, true);
+            while(c.getNrProduse()){
+                modificare_produs(c.getProdus(c.getNrProduse() - 1)->getCodDeBare(), "categorie", denumire_noua);
+                c.delProdus(c.getProdus(c.getNrProduse() - 1)->getCodDeBare());
             }
-        }else{
-            lines.push_back(line);
+        }else if (c.getDenumire() == denumire_noua){
+            std::cout << "O categorie cu noul nume exista deja.\n";
+            return;
         }
+        c = Categorie();
     }
     fin.close();
-    fout.open(categf);
-    for(std::vector<std::string>::iterator a = lines.begin(); a != lines.end(); a++){
-        fout << *a << '\n';
-    }
     if(!exista){
         std::cout << "Nu exista categorii cu aceasta denumire.\n";
     }
-    fout.close();
 }
 
 void stergere_categorie(const std::string denumire){
     std::ifstream fin;
-    std::ofstream fout;
-    std::vector<std::string> lines;
-    std::string line, code;
     bool exista = 0;
-    char *copy, *token;
     fin.open(categf);
-    while(std::getline(fin, line)){
-        if(line != denumire){
-            if(line != ""){
-                lines.push_back(line);
-            }
-        }else{
+    Categorie c;
+    while(fin >> c){
+        if(c.getDenumire() == denumire){
             exista = 1;
-            std::getline(fin, line);
-            int nr_el = std::strtol(line.c_str(), NULL, 10);
-            for(int i = 0; i < nr_el; i++){
-                std::getline(fin, line);
-                copy = strdup(line.c_str());
-                token = strtok(copy, ";");
-                code = token;
-                stergere_produs(token, true);
+            while(c.getNrProduse()){
+                stergere_produs(c.getProdus(c.getNrProduse() - 1)->getCodDeBare());
+                c.delProdus(c.getProdus(c.getNrProduse() - 1)->getCodDeBare());
             }
+            break;
         }
+        c = Categorie();
     }
     fin.close();
-    fout.open(categf);
-    for(std::vector<std::string>::iterator a = lines.begin(); a != lines.end(); a++){
-        fout << *a << '\n';
-    }
-    fout.close();
     if(!exista){
         std::cout << "Nu exista categorii cu aceasta denumire.\n";
     }

@@ -12,6 +12,7 @@ class Categorie{
         int nrProduse;
         Produs **produse;
     public:
+        Categorie();
         Categorie(const std::string, const int = 0, const Produs ** = NULL);
         Categorie(const Categorie&);
         ~Categorie();
@@ -23,10 +24,12 @@ class Categorie{
         void setDenumire(const std::string denumire){this -> denumire = denumire;};
         void setNrProduse(const int nrProduse){this -> nrProduse = nrProduse;};
         void setProdus(const Produs&, const int);
+        void addProdus(Produs*);
+        void delProdus(const std::string);
 
         Categorie operator=(const Categorie&);
-        friend std::ostream& operator<<(std::ostream&, const Categorie&);
-        friend int operator>>(std::istream&, Categorie&);
+        template <typename T> friend T& operator<<(T&, const Categorie&);
+        template <typename T> friend int operator>>(T&, Categorie&);
 
         friend void vizualizare_categorie(const std::string);
         friend void adaugare_categorie(int argc, char **argv); //tbc 

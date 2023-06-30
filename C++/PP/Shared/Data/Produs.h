@@ -12,6 +12,7 @@
 #endif
 
 class Produs_Simplu {
+protected:
     std::string cod_de_bare;
     int cantitate;
 public:
@@ -24,7 +25,6 @@ public:
 
 class Produs : public Produs_Simplu{
         std::string denumire;
-        int cantitate;
         double pret;
         Categorie *categorie;
     public:
@@ -42,10 +42,9 @@ class Produs : public Produs_Simplu{
         void setCategorie(const Categorie &categorie){if(this -> categorie != NULL){delete this -> categorie;}this -> categorie = new Categorie(categorie);};
 
         Produs operator=(const Produs&);
-        friend std::ostream& operator<<(std::ostream &, const Produs&);
-        friend std::istream& operator>>(std::istream &, Produs&);
-        friend std::ifstream& operator>>(std::ifstream &, Produs&);
-        friend std::ofstream& operator<<(std::ofstream &, const Produs&);
+        template <typename T> friend T& operator>>(T&, Produs&);
+        template <typename T> friend T& operator<<(T&, const Produs&);
+        friend std::string& operator>>(std::string&, Produs&);
 
         friend void adaugare_produs(const std::string, const std::string, const int, const double, const std::string);
         friend void modificare_produs(const std::string, const int);
