@@ -486,8 +486,7 @@ int main(int argc, char **argv){
             }else{
                 std::cout << "Sintaxa invalida! Sintaxa corecta: ./magazin.exe stergere_categorie <denumire_categorie>\n";
             }
-        }
-        if(strcmp(argv[1], "adaugare_categorie") == 0){
+        }else if(strcmp(argv[1], "adaugare_categorie") == 0){
             int are_numbers = 1;
             if(!is_number(argv[3])){
                 are_numbers = 0;
@@ -503,27 +502,26 @@ int main(int argc, char **argv){
             }else{
                 std::cout << "Sintaxa invalida! Sintaxa corecta: ./magazin.exe adaugare_categorie <denumire_categorie> <numar_produse> <cod_de_bare_produs_1> <denumire_produs_1> <cantitate_produs_1> <pret_produs_1> <cod_de_bare_produs_2> ...\n";
             }
-        }
-        if(strcmp(argv[1], "modificare_produs") == 0){
+        }else if(strcmp(argv[1], "modificare_produs") == 0){
             if(argc == 5 && (!strcmp(argv[3], "denumire") || !strcmp(argv[3], "cantitate") || !strcmp(argv[3], "categorie") || !strcmp(argv[3], "pret"))){
                 modificare_produs(argv[2], argv[3], argv[4]);
             }else{
                 std::cout << "Sintaxa invalida! Sintaxa corecta: ./magazin.exe modificare_produs <cod_de_bare> <camp_de_modificat(denumire|pret|cantitate|categorie)> <valoare_noua>\n";
             }
-        }
-        if(strcmp(argv[1], "vizualizare_stoc") == 0){
+        }else if(strcmp(argv[1], "vizualizare_stoc") == 0){
             if(argc == 2){
                 vizualizare_stoc();
             }else{
                 std::cout << "Sintaxa invalida! Sintaxa corecta: ./magazin.exe vizualizare_stoc\n";
             }
-        }
-        if(strcmp(argv[1], "vizualizare_categorie") == 0){
+        }else if(strcmp(argv[1], "vizualizare_categorie") == 0){
             if(argc == 3){
                 vizualizare_categorie(argv[2]);
             }else{
                 std::cout << "Sintaxa invalida! Sintaxa corecta: ./magazin.exe vizualizare_categorie <denumire_categorie>\n";
             }
+        }else{
+            std::cout << "Aceasta comanda nu exista.\n";
         }
     }
     return 0;
