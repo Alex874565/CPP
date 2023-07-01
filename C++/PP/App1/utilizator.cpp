@@ -42,7 +42,7 @@ std::string split( const std::string to_be_split, const char separator=';' ) {
 }
 
 void afisare_produs_pentru_user(const Produs& p) {
-    std::cout << "Denumire: " << p.getDenumire() << ", Pret: " << p.getPret() << "lei, Cantitate in stoc: " << p.getCantitate() << std::endl;
+    std::cout << "Denumire: " << p.getDenumire() << "(" << p.getCodDeBare() <<"), Pret: " << p.getPret() << "lei, Cantitate in stoc: " << p.getCantitate() << std::endl;
 }
 
 std::string fila_cos = "../Shared/Files/cos_cumparaturi.txt";
@@ -85,6 +85,7 @@ void stergere_produs(const std::string cod_bare){
     Produs_Simplu aux_ps;
     std::vector<Produs_Simplu*> p1;
     int nr_produse_cos;
+    int found = 0;
 
     fin >> nr_produse_cos;
     fin.ignore();
@@ -95,12 +96,13 @@ void stergere_produs(const std::string cod_bare){
             p1.push_back(new Produs_Simplu(aux_ps));
         if(aux_ps.getCodDeBare() == cod_bare) {
             adauga_la_cantitatea_produsului_din_stoc(cod_bare, aux_ps.getCantitate());
+            found = 1;
         }
     }
 
     fin.close();
     std::ofstream fout(fila_cos);
-    fout << (nr_produse_cos-1) << std::endl;
+    fout << (nr_produse_cos-found) << std::endl;
 
     for(Produs_Simplu *el : p1 )
         fout << *el << std::endl;
@@ -296,16 +298,16 @@ void modificare_produs(const std::string cod_de_bare, const int cantitate_noua){
 int main(int argc, char** argv) {
     if(argc == 1) return 0;
     if(strcmp(argv[1], "adaugare_produs")==0) {
-        if(argc < 4) {
-            std::cout << "EROARE: numar prea mic de parametrii";
+        if(argc != 4) {
+            std::cout << "EROARE: sintaxa incorecta! sintaxa corecta: ./utilizator.exe adaugare_produs <cod_de_bare> <cantitate>";
             return -1;
         }
         adaugare_produs(argv[2], stoi(std::string(argv[3])));
         return 0;
     }
     else if(strcmp(argv[1], "stergere_produs")==0) {
-        if(argc < 3) {
-            std::cout << "EROARE: numar prea mic de parametrii";
+        if(argc != 3) {
+            std::cout << "EROARE: sintaxa incorecta! sintaxa corecta: ./utilizator.exe stergere_produs <cod_de_bare>";
             return -1;
         }
         stergere_produs(argv[2]);
@@ -313,7 +315,7 @@ int main(int argc, char** argv) {
     }
     else if(strcmp(argv[1], "vizualizare_cos")==0) {
         if(argc != 2) {
-            std::cout << "EROARE: numar incorect de parametrii";
+            std::cout << "EROARE: sintaxa incorecta! sintaxa corecta: ./utilizator.exe vizualizare_cos";
             return -1;
         }
         vizualizare_cos();
@@ -321,23 +323,15 @@ int main(int argc, char** argv) {
     }
     else if(strcmp(argv[1], "vizualizare_produse")==0) {
         if(argc != 2) {
-            std::cout << "EROARE: numar incorect de parametrii";
+            std::cout << "EROARE: sintaxa incorecta! sintaxa corecta: ./utilizator.exe vizualizare_produse";
             return -1;
         }
         vizualizare_produse();
         return 0;
     }
-    else if(strcmp(argv[1], "stergere_produs")==0) {
-        if(argc != 3) {
-            std::cout << "EROARE: numar incorect de parametrii";
-            return -1;
-        }
-        stergere_produs(argv[2]);
-        return 0;
-    }
     else if(strcmp(argv[1], "modificare_produs")==0) {
         if(argc != 4) {
-            std::cout << "EROARE: numar incorect de parametrii";
+            std::cout << "EROARE: sintaxa incorecta! sintaxa corecta: ./utilizator.exe modificare_comanda <cod_de_bare> <cantitate_noua>";
             return -1;
         }
         modificare_produs(argv[2], stoi(std::string(argv[3])));
@@ -345,7 +339,7 @@ int main(int argc, char** argv) {
     }
     else if(strcmp(argv[1], "vizualizare_categorie")==0) {
         if(argc != 3) {
-            std::cout << "EROARE: numar incorect de parametrii";
+            std::cout << "EROARE: sintaxa incorecta! sintaxa corecta: ./utilizator.exe vizualizare_categorie <nume_categorie>";
             return -1;
         }
         vizualizare_categorie(argv[2]);
@@ -353,7 +347,7 @@ int main(int argc, char** argv) {
     }
     else if(strcmp(argv[1], "plasare_comanda")==0) {
         if(argc != 2) {
-            std::cout << "EROARE: numar incorect de parametrii";
+            std::cout << "EROARE: EROARE: sintaxa incorecta! sintaxa corecta: ./utilizator.exe plasare_comanda";
             return -1;
         }
         std::string s;
