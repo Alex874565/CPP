@@ -7,6 +7,7 @@
 #endif
 
 #include <vector>
+#include <ctime>
 
 #ifndef COMANDACPP
 #define COMANDACPP
@@ -40,51 +41,90 @@ std::string split( const std::string to_be_split, const char separator=';' ) {
 
 }
 
+void afisare_produs_pentru_user(const Produs& p) {
+    std::cout << "Denumire: " << p.getDenumire() << ", Pret: " << p.getPret() << "lei, Cantitate in stoc: " << p.getCantitate() << std::endl;
+}
+
 std::string fila_cos = "../Shared/Files/cos_cumparaturi.txt";
 std::string fila_stoc = "../Shared/Files/stoc.txt";
+std::string fila_categorii = "../Shared/Files/categorii.txt";
+std::string fila_comenzi = "../Shared/Files/comenzi.txt";
+
+void adauga_la_cantitatea_produsului_din_stoc(std::string cod_bare, int cantitate) {
+
+    std::ifstream fin;
+    fin.open(fila_stoc.c_str());
+    std::vector<Produs*> p;
+    Produs aux;
+    int nr_produse;
+
+    fin >> nr_produse;
+    fin.ignore();
+
+    for(int i = 0; i<nr_produse; i++) {
+        fin >> aux;
+        if(aux.getCodDeBare() == cod_bare)
+            aux.setCantitate(aux.getCantitate() + cantitate);
+        p.push_back(new Produs(aux));
+    }
+
+    fin.close();
+    std::ofstream fout(fila_stoc);
+    fout << nr_produse << std::endl;
+
+    for(Produs *el : p)
+        fout << *el << std::endl;
+
+    fout.close();
+
+}
 
 void stergere_produs(const std::string cod_bare){
 
-    //NETERMINAT
+    std::ifstream fin(fila_cos);
+    Produs_Simplu aux_ps;
+    std::vector<Produs_Simplu*> p1;
+    int nr_produse_cos;
 
-    std::ifstream fin;
-    std::ofstream fout;
-    int produs_contor; //cate elemente sunt inainte de stergere
-    int new_contor = 0; //cate elemente raman dupa stergere
-    std::vector<std::string> lines;
-    std::string line;
-    fin.open( fila_cos.c_str() );
-
-    // citim numarul de produse din cos
-    fin >> produs_contor;
+    fin >> nr_produse_cos;
     fin.ignore();
 
-    // inseram string-ul corespunzator fiecarui produs
-    // din cos in vector
-    for( int i = 0; i < produs_contor; i++ ) {
-        getline(fin, line);
-        if( strcmp( split(line).c_str(), cod_bare.c_str() ) != 0 ) {
-            lines.push_back(line);
-            new_contor ++;
+    for(int i = 0; i<nr_produse_cos; i++) {
+        fin >> aux_ps;
+        if(aux_ps.getCodDeBare() != cod_bare)
+            p1.push_back(new Produs_Simplu(aux_ps));
+        if(aux_ps.getCodDeBare() == cod_bare) {
+            adauga_la_cantitatea_produsului_din_stoc(cod_bare, aux_ps.getCantitate());
         }
     }
 
     fin.close();
-    fout.open( fila_cos.c_str() );
+    std::ofstream fout(fila_cos);
+    fout << (nr_produse_cos-1) << std::endl;
 
-    // updatam contorul si produsele din fisier
-    fout << new_contor << std::endl;
-    for( int i = 0; i < new_contor; i++ )
-        fout << lines[i] << std::endl;
+    for(Produs_Simplu *el : p1 )
+        fout << *el << std::endl;
+
+    fout.close();
 
 }
 
-void modificare_produs(const std::string, const int){
-    return ; //tbc
-}
+void vizualizare_categorie(const std::string denumire_categorie){
+    Categorie *c = new Categorie;
+    std::ifstream fin(fila_categorii);
 
-void vizualizare_categorie(const std::string){
-    return ; //tbc
+    while(fin>>*c) {
+        //std::cout << c.getDenumire() << " " << denumire_categorie << " "
+        // << (c.getDenumire() == denumire_categorie) << std::endl;
+        if(c->getDenumire() == denumire_categorie) {
+           // std::cout << c.getDenumire() <<std::endl;
+            int N = c->getNrProduse();
+            for(int i = 0; i<N; i++)
+                afisare_produs_pentru_user(*(c->getProdus(i)));
+        }
+        c = new Categorie;
+    }
+    fin.close();
 }
 
 void vizualizare_produse(){
@@ -96,11 +136,11 @@ void vizualizare_produse(){
 
     for(int i = 0; i<numar_produse_din_stoc; i++) {
         fin >> p;
-        std::cout << p << std::endl;
+        afisare_produs_pentru_user(p);
     }
 }
 
-void afisare_produs(std::string cod_bare) {
+int afisare_produs(std::string cod_bare) {
 
     //aceasta functie afiseaza un produs dupa codul sau de bare
 
@@ -113,18 +153,20 @@ void afisare_produs(std::string cod_bare) {
     for(int i = 0; i<numar_produse_din_stoc; i++) {
         fin >> p;
         if(p.getCodDeBare() == cod_bare) {
-            std::cout << p;
+            afisare_produs_pentru_user(p);
             fin.close();
-            return;
+            return p.getPret();
         }
     }
     fin.close();
+    return 0;
 }
 
 void vizualizare_cos(){
     std::ifstream fin(fila_cos.c_str());
     int numar_produse_din_cos;
     char* produs_cos = new char[100];
+    int pret_total = 0;
 
     fin>>numar_produse_din_cos;
     fin.ignore();
@@ -132,15 +174,41 @@ void vizualizare_cos(){
     for(int i = 0; i<numar_produse_din_cos; i++) {
         fin >> produs_cos;
         char *cod_bare_produs = strtok(produs_cos, ";");
-        char *cantitate_de_produs = strtok(NULL, ";");
+        int cantitate_de_produs = stoi(std::string(strtok(NULL, ";")));
 
-        afisare_produs(cod_bare_produs);
+        pret_total += afisare_produs(cod_bare_produs) * cantitate_de_produs;
         std::cout << " cantitate in cos: " << cantitate_de_produs << std::endl;
     }
+    std::cout << "Pret Total Comanda: " << pret_total << "lei.";
 }
 
-void plasare_comanda(){
-    return ; //tbc
+void plasare_comanda(std::string adresa){
+    using namespace std;
+    time_t now = time(0);
+    tm *ltm = localtime(&now);
+    ofstream fout(fila_comenzi, ios::app);
+
+    fout << ltm->tm_mday << "-" << (1+ltm->tm_mon) << "-" << ltm->tm_year << ";";
+    fout << "UNKNOWN;";
+    fout << adresa << endl;
+
+    ifstream fin(fila_cos);
+    int nr_produse;
+    Produs_Simplu p;
+
+    fin >> nr_produse;
+    fin.ignore();
+
+    for(int i = 0; i<nr_produse; i++) {
+        fin >> p;
+        fout << p.getCodDeBare() << ";" << p.getCantitate() << std::endl;
+    }
+
+    fin.close();
+    fout.close();
+    fout.open(fila_cos);
+    fout << 0;
+    fout.close();
 }
 
 bool avem_produsul(const std::string cod_bare, const int cantitate) {
@@ -219,6 +287,12 @@ void adaugare_produs(const std::string cod_bare, const int cantitate) {
 
 }
 
+void modificare_produs(const std::string cod_de_bare, const int cantitate_noua){
+    stergere_produs(cod_de_bare);
+    adaugare_produs(cod_de_bare, cantitate_noua);
+}
+
+
 int main(int argc, char** argv) {
     if(argc == 1) return 0;
     if(strcmp(argv[1], "adaugare_produs")==0) {
@@ -251,6 +325,42 @@ int main(int argc, char** argv) {
             return -1;
         }
         vizualizare_produse();
+        return 0;
+    }
+    else if(strcmp(argv[1], "stergere_produs")==0) {
+        if(argc != 3) {
+            std::cout << "EROARE: numar incorect de parametrii";
+            return -1;
+        }
+        stergere_produs(argv[2]);
+        return 0;
+    }
+    else if(strcmp(argv[1], "modificare_produs")==0) {
+        if(argc != 4) {
+            std::cout << "EROARE: numar incorect de parametrii";
+            return -1;
+        }
+        modificare_produs(argv[2], stoi(std::string(argv[3])));
+        return 0;
+    }
+    else if(strcmp(argv[1], "vizualizare_categorie")==0) {
+        if(argc != 3) {
+            std::cout << "EROARE: numar incorect de parametrii";
+            return -1;
+        }
+        vizualizare_categorie(argv[2]);
+        return 0;
+    }
+    else if(strcmp(argv[1], "plasare_comanda")==0) {
+        if(argc != 2) {
+            std::cout << "EROARE: numar incorect de parametrii";
+            return -1;
+        }
+        std::string s;
+        std::cout << "Please give us your address: ";
+        std::getline(std::cin, s);
+        std::cout << std::endl;
+        plasare_comanda(s);
         return 0;
     }
 }
