@@ -117,7 +117,7 @@ template <typename T> T& operator>>(T& is, Produs_Simplu& p) {
 }
 
 template <typename T> T& operator<<(T& os, const Produs_Simplu& p) {
-    os << p.getCodDeBare() << ";" << p.getCantitate();
+    os << p.getCodDeBare().c_str() << ";" << p.getCantitate();
     return os;
 }
 

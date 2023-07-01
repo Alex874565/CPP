@@ -192,7 +192,7 @@ void plasare_comanda(std::string adresa){
 
     fout << ltm->tm_mday << "-" << (1+ltm->tm_mon) << "-" << ltm->tm_year << ";";
     fout << "UNKNOWN;";
-    fout << adresa << endl;
+    fout << adresa.c_str() << endl;
 
     ifstream fin(fila_cos);
     int nr_produse;
@@ -203,7 +203,7 @@ void plasare_comanda(std::string adresa){
 
     for(int i = 0; i<nr_produse; i++) {
         fin >> p;
-        fout << p.getCodDeBare() << ";" << p.getCantitate() << std::endl;
+        fout << p.getCodDeBare().c_str() << ";" << p.getCantitate() << std::endl;
     }
 
     fin.close();
@@ -284,8 +284,8 @@ void adaugare_produs(const std::string cod_bare, const int cantitate) {
     // updatam contorul din fisier
     fout << produs_contor + 1 << std::endl;
     for( int i = 0; i < produs_contor; i++ )
-        fout << lines[i] << std::endl;
-    fout << cod_bare << ";" << cantitate << std::endl;
+        fout << lines[i].c_str() << std::endl;
+    fout << cod_bare.c_str() << ";" << cantitate << std::endl;
 
 }
 
