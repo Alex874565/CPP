@@ -4,6 +4,8 @@
 #include <string>
 #include <string.h>
 #include <fstream>
+#include <assert.h>
+#include <stdlib.h>
 
 #endif
 
@@ -71,7 +73,8 @@ std::string& operator>>(std::string& stream, Produs& p){
     //asta o implementase-si tu Carpi doar ca ai uitat sa incluzie
     //relatia de friend si in prototipul clasei :))
     if(stream != ""){
-        char *token = strdup(stream.c_str());
+        char *token;
+        strcpy(token, stream.c_str());
         token = strtok(token, ";");
         p.cod_de_bare = token;
         token = strtok(NULL, ";");
@@ -98,3 +101,23 @@ template <typename T> T& operator<<(T& stream, const Produs& p){
     stream << p.getCodDeBare().c_str() << ";" << p.denumire << ";" << p.cantitate << ";" << p.pret << ";" << p.categorie->getDenumire();
     return stream;
 }
+
+template <typename T> T& operator>>(T& is, Produs_Simplu& p) {
+    char *str = new char[100];
+    if(is.getline(str, 100) && strcmp(str, "") != 0){
+        char *token = strtok(str, ";");
+        p.setCodDeBare(token);
+        token = strtok(NULL, ";");
+        p.cantitate = (int)std::strtol(token, NULL, 10);
+        return is;
+    }else{
+
+        return is;
+    }
+}
+
+template <typename T> T& operator<<(T& os, const Produs_Simplu& p) {
+    os << p.getCodDeBare() << ";" << p.getCantitate();
+    return os;
+}
+
