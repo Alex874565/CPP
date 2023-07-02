@@ -296,7 +296,17 @@ void modificare_produs(const std::string cod_de_bare, const int cantitate_noua){
 
 
 int main(int argc, char** argv) {
-    if(argc == 1) return 0;
+    if(argc == 1) {
+        std::cout << "./utilizator.exe plasare_comanda - pentru a plasa comanda" << std::endl;
+        std::cout << "./utilizator.exe vizualizare_categorie <nume_categorie> - pentru a vedea produsele din stoc dintr-o categorie" << std::endl;
+        std::cout << "./utilizator.exe modificare_comanda <cod_de_bare> <cantitate_noua> - pentru a modifica cantitatea de produs din cos" << std::endl;
+        std::cout << "./utilizator.exe vizualizare_produse - pentru a vedea produsele din stoc" << std::endl;
+        std::cout << "./utilizator.exe vizualizare_cos - pentru a vedea produsele din cos" << std::endl;
+        std::cout << "./utilizator.exe stergere_produs <cod_de_bare> - pentru a sterge un produs din cos" << std::endl;
+        std::cout << "./utilizator.exe adaugare_produs <cod_de_bare> <cantitate> - pentru a adauga o anumita cantitate de produs in cos" << std::endl;
+
+        return 0;
+    }
     if(strcmp(argv[1], "adaugare_produs")==0) {
         if(argc != 4) {
             std::cout << "EROARE: sintaxa incorecta! sintaxa corecta: ./utilizator.exe adaugare_produs <cod_de_bare> <cantitate>";
@@ -347,7 +357,7 @@ int main(int argc, char** argv) {
     }
     else if(strcmp(argv[1], "plasare_comanda")==0) {
         if(argc != 2) {
-            std::cout << "EROARE: EROARE: sintaxa incorecta! sintaxa corecta: ./utilizator.exe plasare_comanda";
+            std::cout << "EROARE: sintaxa incorecta! sintaxa corecta: ./utilizator.exe plasare_comanda";
             return -1;
         }
         std::string s;
@@ -357,4 +367,15 @@ int main(int argc, char** argv) {
         plasare_comanda(s);
         return 0;
     }
+    else {
+        std::cout << "Aceasta comanda nu exista! Incercati una dintre urmatoarele: " << std::endl;
+        std::cout << "./utilizator.exe plasare_comanda - pentru a plasa comanda" << std::endl;
+        std::cout << "./utilizator.exe vizualizare_categorie <nume_categorie> - pentru a vedea produsele din stoc dintr-o categorie" << std::endl;
+        std::cout << "./utilizator.exe modificare_comanda <cod_de_bare> <cantitate_noua> - pentru a modifica cantitatea de produs din cos" << std::endl;
+        std::cout << "./utilizator.exe vizualizare_produse - pentru a vedea produsele din stoc" << std::endl;
+        std::cout << "./utilizator.exe vizualizare_cos - pentru a vedea produsele din cos" << std::endl;
+        std::cout << "./utilizator.exe stergere_produs <cod_de_bare> - pentru a sterge un produs din cos" << std::endl;
+        std::cout << "./utilizator.exe adaugare_produs <cod_de_bare> <cantitate> - pentru a adauga o anumita cantitate de produs in cos" << std::endl;
+    }
+    return 0;
 }
