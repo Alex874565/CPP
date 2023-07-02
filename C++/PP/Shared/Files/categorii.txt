@@ -1,6 +1,9 @@
-Categorie
-1
-01;A;1;1;Categorie
-Amog
-1
-04;D;1;0;Amog
+Periferice
+3
+03;Mouse;200;12;Periferice
+04;Tastatura;120;10;Periferice
+07;Casti;40;20;Periferice
+Componenta
+2
+02;Procesor;100;20;Componenta
+06;Motherboard;200;10;Componenta
